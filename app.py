@@ -3,7 +3,12 @@ import requests
 import ffmpeg
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+# Definir o diretório onde os arquivos convertidos serão salvos
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Configurar o Flask para servir arquivos estáticos do diretório 'static'
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 # Função para baixar o arquivo via URL
 def download_file(url, filename):
@@ -42,7 +47,7 @@ def upload():
         
         # Nome do arquivo temporário para salvar o arquivo baixado
         temp_filename = 'temp_audio.mp3'
-        converted_filename = 'converted_audio.mp3'
+        converted_filename = os.path.join(UPLOAD_FOLDER, 'converted_audio.mp3')  # Salvar no diretório 'static/uploads'
 
         # Baixar o arquivo
         if download_file(file_url, temp_filename):
@@ -53,10 +58,10 @@ def upload():
                 # Excluir o arquivo original após a conversão
                 os.remove(temp_filename)
                 
-                # Retornar sucesso
+                # Retornar sucesso com a URL do arquivo convertido
                 return jsonify({
                     'message': 'Arquivo convertido com sucesso',
-                    'converted_file': converted_filename,
+                    'converted_file': f'/static/uploads/converted_audio.mp3',  # Caminho público do arquivo convertido
                     'success': True
                 }), 200
             else:
